@@ -36,31 +36,31 @@ $user_id = $_SESSION['user_id'] ?? null;
       <!-- Event Creator Links -->
       <?php elseif ($user_role == 'event_creator'): ?>
       <li class="nav-item">
-        <a class="nav-link" href="/event_creator/dashboard.php">Dashboard</a>
+        <a class="nav-link" href="../Attendance/event_creator/dashboard.php">Dashboard</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/event_creator/create_event.php">Create Event</a>
+        <a class="nav-link" href="../Attendance/event_creator/create_event.php">Create Event</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/event_creator/manage_events.php">Manage Events</a>
+        <a class="nav-link" href="../Attendance/event_creator/manage_events.php">Manage Events</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/event_creator/import_attendees.php">Import Attendees</a>
+        <a class="nav-link" href="../Attendance/event_creator/import_attendees.php">Import Attendees</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/event_creator/assign_checkers.php">Assign Checkers</a>
+        <a class="nav-link" href="../Attendance/event_creator/assign_checkers.php">Assign Checkers</a>
       </li>
 
       <!-- Checker Links -->
       <?php elseif ($user_role == 'checker'): ?>
       <li class="nav-item">
-        <a class="nav-link" href="/checker/dashboard.php">Dashboard</a>
+        <a class="nav-link" href="../Attendance/checker/dashboard.php">Dashboard</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/checker/event_list.php">Assigned Events</a>
+        <a class="nav-link" href="../Attendance/checker/event_list.php">Assigned Events</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/checker/check_in.php">Check In Attendees</a>
+        <a class="nav-link" href="../Attendance/checker/check_in.php">Check In Attendees</a>
       </li>
 
       <?php endif; ?>

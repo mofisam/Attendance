@@ -1,0 +1,8 @@
+{
+    "name": "techempery/attendance",
+    "description": "A comprehensive attendance management system designed for event creators, checkers, and administrators. This web application allows users to create and manage events, track attendance, and generate reports. Features include user authentication, role-based access control, and the ability to import attendee lists.",
+    "type": "project",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "require": {}
+}

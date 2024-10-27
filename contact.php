@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = 'Please enter a valid email address.';
     } else {
         // Email sending logic (this will send the email to the site admin)
-        $to = 'admin@example.com'; // Admin email address
+        $to = 'info@techempery.com'; // Admin email address
         $headers = "From: $name <$email>\r\n";
         $headers .= "Reply-To: $email\r\n";
         $full_message = "Name: $name\nEmail: $email\n\n$message";
