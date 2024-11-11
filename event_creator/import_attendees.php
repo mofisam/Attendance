@@ -1,19 +1,15 @@
 <?php
 session_start();
-include '../includes/auth.php'; // Ensure the user is authenticated as event creator
-include '../includes/db_connect.php'; // Include database connection
-
-// Include PhpSpreadsheet for Excel handling
-require '../vendor/autoload.php'; // Assuming PhpSpreadsheet is installed via Composer
+include '../includes/auth.php';
+include '../includes/db_connect.php';
+require '../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-// Handle file upload and processing
 if (isset($_POST['upload'])) {
     $event_id = intval($_POST['event_id']);
-
-    // File upload validation
-    if (isset($_FILES['excel_file']) && $_FILES['excel_file']['error'] == 0) {
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
         $file = $_FILES['excel_file']['tmp_name'];
         
         // Load the uploaded Excel file
@@ -21,18 +17,28 @@ if (isset($_POST['upload'])) {
         $sheet = $spreadsheet->getActiveSheet();
         $highestRow = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();
-        
-        // Fetch all rows and columns from the Excel file
+        $highestColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
+
+        // Load headers from the first row
+        $headers = [];
+        for ($col = 1; $col <= $highestColumnIndex; $col++) {
+            $headers[] = $sheet->getCellByColumnAndRow($col, 1)->getValue(); // Get header values
+        }
+
+        // Load data rows, starting from the second row
         $excel_data = [];
-        for ($row = 1; $row <= $highestRow; $row++) {
+        for ($row = 2; $row <= $highestRow; $row++) {
             $row_data = [];
-            foreach (range('A', $highestColumn) as $column) {
-                $row_data[$column] = $sheet->getCell($column . $row)->getValue();
+            for ($col = 1; $col <= $highestColumnIndex; $col++) {
+                $cellValue = $sheet->getCellByColumnAndRow($col, $row)->getValue();
+                $row_data[] = $cellValue;
             }
             $excel_data[] = $row_data;
         }
         
-        $_SESSION['excel_data'] = $excel_data; // Store data temporarily in session
+        // Store headers and data in session
+        $_SESSION['excel_headers'] = $headers;
+        $_SESSION['excel_data'] = $excel_data;
         $_SESSION['event_id'] = $event_id;
 
         header('Location: import_attendees.php?step=2');
@@ -42,15 +48,14 @@ if (isset($_POST['upload'])) {
     }
 }
 
-// Handle column mapping and saving to the database
+// Step 2: Column Mapping
 if (isset($_POST['save_mapping'])) {
     $selected_columns = $_POST['columns'];
     $excel_data = $_SESSION['excel_data'];
     $event_id = $_SESSION['event_id'];
 
-    // Insert the mapped data into the attendees table
-    foreach ($excel_data as $row => $row_data) {
-        if ($row == 0) continue; // Skip the header row
+    foreach ($excel_data as $rowIndex => $row_data) {
+        if ($rowIndex == 0) continue;  // Skip header row
 
         $name = !empty($selected_columns['name']) ? $row_data[$selected_columns['name']] : '';
         $email = !empty($selected_columns['email']) ? $row_data[$selected_columns['email']] : '';
@@ -58,18 +63,17 @@ if (isset($_POST['save_mapping'])) {
         $age = !empty($selected_columns['age']) ? $row_data[$selected_columns['age']] : '';
         $sex = !empty($selected_columns['sex']) ? $row_data[$selected_columns['sex']] : '';
 
-        $query = "INSERT INTO attendees (event_id, name, email, phone, age, sex) 
-                  VALUES ($event_id, '$name', '$email', '$phone', '$age', '$sex')";
+        $query = "INSERT INTO attendees (event_id, name, email, phone, age, sex) VALUES ($event_id, '$name', '$email', '$phone', '$age', '$sex')";
         mysqli_query($conn, $query);
     }
 
-    unset($_SESSION['excel_data'], $_SESSION['event_id']);
+    unset($_SESSION['excel_data'], $_SESSION['event_id'], $_SESSION['excel_headers']);
     $_SESSION['success'] = "Attendees imported successfully.";
     header('Location: import_attendees.php');
     exit();
 }
 
-// Fetch events for dropdown (created by this event creator)
+// Step 1: Fetch events for dropdown
 $query_events = "SELECT * FROM events WHERE created_by = {$_SESSION['user_id']} ORDER BY created_at DESC";
 $result_events = mysqli_query($conn, $query_events);
 ?>
@@ -143,12 +147,17 @@ $result_events = mysqli_query($conn, $query_events);
             <div class="card-body">
                 <h4 class="step-header">Step 2: Map Excel Columns</h4>
                 <form method="post" action="import_attendees.php">
+                    <?php
+                    // Store the headers from session for dropdowns
+                    $headers = $_SESSION['excel_headers'];
+                    ?>
+
                     <div class="form-group">
                         <label for="name_column">Select Column for Name:</label>
                         <select name="columns[name]" class="form-control" required>
                             <option value="">Select Column</option>
-                            <?php foreach (range('A', $highestColumn) as $column): ?>
-                                <option value="<?php echo $column; ?>"><?php echo $column; ?> - <?php echo $_SESSION['excel_data'][0][$column]; ?></option>
+                            <?php foreach ($headers as $index => $header): ?>
+                                <option value="<?php echo $index; ?>"><?php echo $header; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -156,8 +165,8 @@ $result_events = mysqli_query($conn, $query_events);
                         <label for="email_column">Select Column for Email:</label>
                         <select name="columns[email]" class="form-control">
                             <option value="">Select Column</option>
-                            <?php foreach (range('A', $highestColumn) as $column): ?>
-                                <option value="<?php echo $column; ?>"><?php echo $column; ?> - <?php echo $_SESSION['excel_data'][0][$column]; ?></option>
+                            <?php foreach ($headers as $index => $header): ?>
+                                <option value="<?php echo $index; ?>"><?php echo $header; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -165,8 +174,8 @@ $result_events = mysqli_query($conn, $query_events);
                         <label for="phone_column">Select Column for Phone:</label>
                         <select name="columns[phone]" class="form-control">
                             <option value="">Select Column</option>
-                            <?php foreach (range('A', $highestColumn) as $column): ?>
-                                <option value="<?php echo $column; ?>"><?php echo $column; ?> - <?php echo $_SESSION['excel_data'][0][$column]; ?></option>
+                            <?php foreach ($headers as $index => $header): ?>
+                                <option value="<?php echo $index; ?>"><?php echo $header; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -174,8 +183,8 @@ $result_events = mysqli_query($conn, $query_events);
                         <label for="age_column">Select Column for Age:</label>
                         <select name="columns[age]" class="form-control">
                             <option value="">Select Column</option>
-                            <?php foreach (range('A', $highestColumn) as $column): ?>
-                                <option value="<?php echo $column; ?>"><?php echo $column; ?> - <?php echo $_SESSION['excel_data'][0][$column]; ?></option>
+                            <?php foreach ($headers as $index => $header): ?>
+                                <option value="<?php echo $index; ?>"><?php echo $header; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -183,8 +192,8 @@ $result_events = mysqli_query($conn, $query_events);
                         <label for="sex_column">Select Column for Sex:</label>
                         <select name="columns[sex]" class="form-control">
                             <option value="">Select Column</option>
-                            <?php foreach (range('A', $highestColumn) as $column): ?>
-                                <option value="<?php echo $column; ?>"><?php echo $column; ?> - <?php echo $_SESSION['excel_data'][0][$column]; ?></option>
+                            <?php foreach ($headers as $index => $header): ?>
+                                <option value="<?php echo $index; ?>"><?php echo $header; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

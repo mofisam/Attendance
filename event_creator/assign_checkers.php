@@ -7,7 +7,7 @@ include '../includes/db_connect.php'; // Include database connection
 $creator_id = $_SESSION['user_id'];
 
 // Fetch all users who are checkers (can be from a specific team of the creator)
-$query_checkers = "SELECT * FROM users WHERE role = 'checker' AND id = $creator_id";
+$query_checkers = "SELECT * FROM users WHERE role = 'checker' ";
 $result_checkers = mysqli_query($conn, $query_checkers);
 
 // Fetch events created by the event creator

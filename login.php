@@ -25,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Redirect user based on their role
             if ($user['role'] == 'admin') {
-                header("Location: /admin/dashboard.php");
+                header("Location: ../Attendance/admin/dashboard.php");
             } elseif ($user['role'] == 'event_creator') {
-                header("Location: /event_creator/dashboard.php");
+                header("Location: ../Attendance/event_creator/dashboard.php");
             } else {
-                header("Location: /checker/dashboard.php");
+                header("Location: ../Attendance/checker/dashboard.php");
             }
             exit();
         } else {
@@ -131,7 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <p class="form-text mt-4">Don't have an account? <a href="register_user.php">Sign up</a></p>
 </div>
-
+<div>
+    
 <!-- Bootstrap JS and dependencies -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>

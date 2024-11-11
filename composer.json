@@ -4,5 +4,7 @@
     "type": "project",
     "license": "MIT",
     "minimum-stability": "dev",
-    "require": {}
+    "require": {
+        "phpoffice/phpspreadsheet": "^1.24"
+    }
 }
